@@ -8,6 +8,7 @@ public partial class MainWindow : Window
 {
     private readonly MemoryOptimizationScope? _startupScope;
     private readonly DispatcherTimer _refreshTimer = new();
+    private readonly bool _isAdministrator = WindowsSecurity.IsAdministrator();
     private CancellationTokenSource? _operationCancellation;
     private bool _closeAfterCancellation;
     private bool _isBusy;
@@ -67,7 +68,7 @@ public partial class MainWindow : Window
     {
         if (_isBusy) return;
 
-        if (!WindowsSecurity.IsAdministrator())
+        if (!_isAdministrator)
         {
             var scopeArg = scope == MemoryOptimizationScope.All ? "full" : "recommended";
             AppendLog($"{label} 需要管理员权限，正在打开管理员窗口...");
@@ -105,7 +106,7 @@ public partial class MainWindow : Window
                 MemoryOptimizerEngine.Optimize(
                     scope,
                     cancellation.Token,
-                    step => Dispatcher.Invoke(() => AppendLog($"正在{step}...")));
+                    step => _ = Dispatcher.BeginInvoke(new Action(() => AppendLog($"正在{step}..."))));
 
                 cancellation.Token.ThrowIfCancellationRequested();
                 return MemoryStatus.Query();
@@ -147,11 +148,11 @@ public partial class MainWindow : Window
         MemoryBar.Value = status.LoadPercent;
         AvailableText.Text = ByteSize.Format(status.AvailablePhysicalBytes);
         TotalText.Text = ByteSize.Format(status.TotalPhysicalBytes);
-        AdminText.Text = WindowsSecurity.IsAdministrator() ? "管理员：是" : "管理员：否";
+        AdminText.Text = _isAdministrator ? "管理员：是" : "管理员：否";
         FooterText.Text = $"最后刷新：{DateTime.Now:HH:mm:ss}";
 
         if (!_isBusy)
-            StateText.Text = WindowsSecurity.IsAdministrator()
+            StateText.Text = _isAdministrator
                 ? "可直接执行系统级优化。"
                 : "系统级优化会请求管理员权限。";
     }

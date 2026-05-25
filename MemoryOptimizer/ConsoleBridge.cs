@@ -5,6 +5,8 @@ namespace MemoryOptimizer;
 
 internal static class ConsoleBridge
 {
+    private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
+
     public static void AttachForCli()
     {
         if (!OperatingSystem.IsWindows()) return;
@@ -19,8 +21,8 @@ internal static class ConsoleBridge
         {
             var output = Console.OpenStandardOutput();
             var error = Console.OpenStandardError();
-            Console.SetOut(new StreamWriter(output, Encoding.UTF8) { AutoFlush = true });
-            Console.SetError(new StreamWriter(error, Encoding.UTF8) { AutoFlush = true });
+            Console.SetOut(new StreamWriter(output, Utf8NoBom) { AutoFlush = true });
+            Console.SetError(new StreamWriter(error, Utf8NoBom) { AutoFlush = true });
         }
         catch
         {

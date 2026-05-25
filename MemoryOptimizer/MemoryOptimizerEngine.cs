@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace MemoryOptimizer;
 
 internal static class MemoryOptimizerEngine
@@ -14,83 +12,73 @@ internal static class MemoryOptimizerEngine
         NativeMethods.SetPrivilege(NativeMethods.SePrivilege.SeProfileSingleProcessPrivilege, true);
         NativeMethods.SetPrivilege(NativeMethods.SePrivilege.SeIncreaseQuotaPrivilege, true);
 
-        if (scope.HasFlag(MemoryOptimizationScope.EmptyWorkingSets))
-            ExecuteStep(
-                "清理进程工作集",
-                cancellationToken,
-                progress,
-                () => ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.EmptyWorkingSets));
+        if (Includes(scope, MemoryOptimizationScope.EmptyWorkingSets))
+        {
+            Checkpoint("清理进程工作集", cancellationToken, progress);
+            ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.EmptyWorkingSets);
+        }
 
-        if (scope.HasFlag(MemoryOptimizationScope.FlushFileCache))
-            ExecuteStep("刷新文件缓存", cancellationToken, progress, FlushFileCache);
+        if (Includes(scope, MemoryOptimizationScope.FlushFileCache))
+        {
+            Checkpoint("刷新文件缓存", cancellationToken, progress);
+            FlushFileCache();
+        }
 
-        if (scope.HasFlag(MemoryOptimizationScope.FlushModifiedList))
-            ExecuteStep(
-                "刷新已修改页面列表",
-                cancellationToken,
-                progress,
-                () => ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.FlushModifiedList));
+        if (Includes(scope, MemoryOptimizationScope.FlushModifiedList))
+        {
+            Checkpoint("刷新已修改页面列表", cancellationToken, progress);
+            ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.FlushModifiedList);
+        }
 
-        if (scope.HasFlag(MemoryOptimizationScope.PurgeStandbyList))
-            ExecuteStep(
-                "清理备用页面列表",
-                cancellationToken,
-                progress,
-                () => ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.PurgeStandbyList));
+        if (Includes(scope, MemoryOptimizationScope.PurgeStandbyList))
+        {
+            Checkpoint("清理备用页面列表", cancellationToken, progress);
+            ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.PurgeStandbyList);
+        }
 
-        if (scope.HasFlag(MemoryOptimizationScope.PurgeLowPriorityStandbyList))
-            ExecuteStep(
-                "清理低优先级备用页面",
-                cancellationToken,
-                progress,
-                () => ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.PurgeLowPriorityStandbyList));
+        if (Includes(scope, MemoryOptimizationScope.PurgeLowPriorityStandbyList))
+        {
+            Checkpoint("清理低优先级备用页面", cancellationToken, progress);
+            ExecuteMemoryListCommand(NativeMethods.MemoryListCommand.PurgeLowPriorityStandbyList);
+        }
 
-        if (scope.HasFlag(MemoryOptimizationScope.RegistryReconciliation))
-            ExecuteStep(
-                "同步注册表内存",
-                cancellationToken,
-                progress,
-                () => NativeMethods.SetSystemInformation(
-                    NativeMethods.SystemInformationClass.SystemRegistryReconciliationInformation,
-                    IntPtr.Zero,
-                    0));
+        if (Includes(scope, MemoryOptimizationScope.RegistryReconciliation))
+        {
+            Checkpoint("同步注册表内存", cancellationToken, progress);
+            NativeMethods.SetSystemInformation(
+                NativeMethods.SystemInformationClass.SystemRegistryReconciliationInformation,
+                IntPtr.Zero,
+                0);
+        }
 
-        if (scope.HasFlag(MemoryOptimizationScope.CombinePhysicalMemory))
-            ExecuteStep(
-                "合并物理内存页面",
-                cancellationToken,
-                progress,
-                () => ExecuteStructureOperation(
-                    new NativeMethods.MemoryCombineInformationEx(),
-                    NativeMethods.SystemInformationClass.SystemCombinePhysicalMemoryInformation));
+        if (Includes(scope, MemoryOptimizationScope.CombinePhysicalMemory))
+        {
+            Checkpoint("合并物理内存页面", cancellationToken, progress);
+            ExecuteStructureOperation(
+                new NativeMethods.MemoryCombineInformationEx(),
+                NativeMethods.SystemInformationClass.SystemCombinePhysicalMemoryInformation);
+        }
     }
 
-    private static void ExecuteStep(
+    private static bool Includes(MemoryOptimizationScope scope, MemoryOptimizationScope flag) =>
+        (scope & flag) != 0;
+
+    private static void Checkpoint(
         string name,
         CancellationToken cancellationToken,
-        Action<string>? progress,
-        Action operation)
+        Action<string>? progress)
     {
         cancellationToken.ThrowIfCancellationRequested();
         progress?.Invoke(name);
-        operation();
     }
 
-    private static void ExecuteMemoryListCommand(NativeMethods.MemoryListCommand command)
+    private static unsafe void ExecuteMemoryListCommand(NativeMethods.MemoryListCommand command)
     {
         var value = (int)command;
-        var handle = GCHandle.Alloc(value, GCHandleType.Pinned);
-        try
-        {
-            NativeMethods.SetSystemInformation(
-                NativeMethods.SystemInformationClass.SystemMemoryListInformation,
-                handle.AddrOfPinnedObject(),
-                sizeof(int));
-        }
-        finally
-        {
-            if (handle.IsAllocated) handle.Free();
-        }
+        NativeMethods.SetSystemInformation(
+            NativeMethods.SystemInformationClass.SystemMemoryListInformation,
+            (IntPtr)(&value),
+            sizeof(int));
     }
 
     private static void FlushFileCache()
@@ -107,21 +95,14 @@ internal static class MemoryOptimizerEngine
             NativeMethods.SystemInformationClass.SystemFileCacheInformationEx);
     }
 
-    private static void ExecuteStructureOperation<T>(
+    private static unsafe void ExecuteStructureOperation<T>(
         T structure,
         NativeMethods.SystemInformationClass informationClass)
+        where T : unmanaged
     {
-        var handle = GCHandle.Alloc(structure, GCHandleType.Pinned);
-        try
-        {
-            NativeMethods.SetSystemInformation(
-                informationClass,
-                handle.AddrOfPinnedObject(),
-                (uint)Marshal.SizeOf<T>());
-        }
-        finally
-        {
-            if (handle.IsAllocated) handle.Free();
-        }
+        NativeMethods.SetSystemInformation(
+            informationClass,
+            (IntPtr)(&structure),
+            (uint)sizeof(T));
     }
 }

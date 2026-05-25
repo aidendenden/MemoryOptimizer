@@ -8,7 +8,11 @@ namespace MemoryOptimizer;
 
 internal static class WindowsSecurity
 {
-    public static bool IsAdministrator()
+    private static readonly Lazy<bool> IsAdministratorLazy = new(CheckAdministrator);
+
+    public static bool IsAdministrator() => IsAdministratorLazy.Value;
+
+    private static bool CheckAdministrator()
     {
         using var identity = WindowsIdentity.GetCurrent();
         var principal = new WindowsPrincipal(identity);

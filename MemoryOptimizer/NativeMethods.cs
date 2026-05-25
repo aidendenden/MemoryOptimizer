@@ -6,6 +6,7 @@ namespace MemoryOptimizer;
 internal static partial class NativeMethods
 {
     private const int AttachParentProcess = -1;
+    private const uint MemoryStatusExLength = 64;
 
     internal enum SePrivilege : uint
     {
@@ -93,7 +94,7 @@ internal static partial class NativeMethods
     {
         var status = new MemoryStatusEx
         {
-            dwLength = (uint)Marshal.SizeOf<MemoryStatusEx>()
+            dwLength = MemoryStatusExLength
         };
 
         if (!GlobalMemoryStatusEx(ref status))
