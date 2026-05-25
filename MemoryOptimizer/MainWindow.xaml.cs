@@ -18,7 +18,7 @@ public partial class MainWindow : Window
     private readonly List<MemoryChartPoint> _chartPoints = new(capacity: 32);
     private CancellationTokenSource? _operationCancellation;
     private WinForms.NotifyIcon? _trayIcon;
-    private string _lastChartSummary = "暂无优化记录。";
+    private string _lastChartSummary = "";
     private bool _closeAfterCancellation;
     private bool _isBusy;
 
@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         _startupScope = startupScope;
 
+        _lastChartSummary = T("NoChartHistory");
         ApplySettings();
         ConfigureTrayIcon();
         _refreshTimer.Tick += (_, _) => RefreshStatus();
@@ -35,8 +36,8 @@ public partial class MainWindow : Window
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
         RefreshStatus();
-        AddChartPoint(MemoryStatus.Query(), "启动");
-        AppendLog("程序已启动。");
+        AddChartPoint(MemoryStatus.Query(), T("StartupLabel"));
+        AppendLog(T("Started"));
 
         if (_startupScope.HasValue)
             await RunOptimizationAsync(_startupScope.Value, GetScopeLabel(_startupScope.Value));
@@ -45,17 +46,17 @@ public partial class MainWindow : Window
     private void Refresh_Click(object sender, RoutedEventArgs e) => RefreshStatus();
 
     private async void Default_Click(object sender, RoutedEventArgs e) =>
-        await RequestOptimizationAsync(_settings.DefaultScope, $"{GetScopeLabel(_settings.DefaultScope)}（默认）");
+        await RequestOptimizationAsync(_settings.DefaultScope, $"{GetScopeLabel(_settings.DefaultScope)} ({T("DefaultSuffix")})");
 
     private async void Recommended_Click(object sender, RoutedEventArgs e) =>
-        await RequestOptimizationAsync(MemoryOptimizationScope.Recommended, "推荐优化");
+        await RequestOptimizationAsync(MemoryOptimizationScope.Recommended, GetScopeLabel(MemoryOptimizationScope.Recommended));
 
     private async void Full_Click(object sender, RoutedEventArgs e) =>
-        await RequestOptimizationAsync(MemoryOptimizationScope.All, "深度优化");
+        await RequestOptimizationAsync(MemoryOptimizationScope.All, GetScopeLabel(MemoryOptimizationScope.All));
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
-        RequestCancel("正在取消，当前步骤结束后停止。", "已请求取消，当前步骤结束后会停止后续操作。");
+        RequestCancel(T("CancelingState"), T("CancelingLog"));
     }
 
     private void Window_Closing(object? sender, CancelEventArgs e)
@@ -64,7 +65,7 @@ public partial class MainWindow : Window
 
         e.Cancel = true;
         _closeAfterCancellation = true;
-        RequestCancel("正在关闭，当前步骤结束后退出。", "已请求关闭，当前步骤结束后会退出。");
+        RequestCancel(T("ClosingState"), T("ClosingLog"));
     }
 
     private void Window_Closed(object sender, EventArgs e)
@@ -78,12 +79,12 @@ public partial class MainWindow : Window
         if (WindowState != WindowState.Minimized) return;
 
         Hide();
-        _trayIcon?.ShowBalloonTip(1500, "Memory Optimizer", "已最小化到系统托盘。", WinForms.ToolTipIcon.Info);
+        _trayIcon?.ShowBalloonTip(1500, "Memory Optimizer", T("TrayMinimized"), WinForms.ToolTipIcon.Info);
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        var settingsWindow = new SettingsWindow(_settings)
+        var settingsWindow = new SettingsWindow(_settings, _settings.Language)
         {
             Owner = this
         };
@@ -93,8 +94,20 @@ public partial class MainWindow : Window
         _settings.CopyFrom(settingsWindow.Settings);
         _settings.Save();
         ApplySettings();
+        ConfigureTrayIcon();
         RefreshStatus();
-        AppendLog("设置已保存。");
+        DrawMemoryChart();
+        AppendLog(T("SettingsSaved"));
+    }
+
+    private void Language_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.Language = _settings.Language == UiLanguage.Chinese ? UiLanguage.English : UiLanguage.Chinese;
+        _settings.Save();
+        ApplySettings();
+        ConfigureTrayIcon();
+        RefreshStatus();
+        DrawMemoryChart();
     }
 
     private void RequestCancel(string stateText, string logMessage)
@@ -115,23 +128,23 @@ public partial class MainWindow : Window
         {
             if (!_settings.AutoRequestElevation)
             {
-                StateText.Text = "当前不是管理员权限，设置已关闭自动提权。";
-                AppendLog("当前不是管理员权限，已按设置取消自动提权。");
+                StateText.Text = T("ElevationDisabledState");
+                AppendLog(T("ElevationDisabledLog"));
                 return;
             }
 
             var scopeArg = scope == MemoryOptimizationScope.All ? "full" : "recommended";
-            AppendLog($"{label} 需要管理员权限，正在打开管理员窗口...");
+            AppendLog(string.Format(T("OpeningElevated"), label));
             var result = WindowsSecurity.RelaunchElevated(new[] { "gui", "--run", scopeArg });
             if (result == 0)
             {
-                AppendLog("管理员窗口已启动，正在关闭当前普通权限窗口。");
+                AppendLog(T("ElevatedStarted"));
                 System.Windows.Application.Current.Shutdown();
             }
             else
             {
-                StateText.Text = "管理员窗口未启动，优化已取消。";
-                AppendLog("管理员窗口未启动，优化已取消。");
+                StateText.Text = T("ElevatedFailed");
+                AppendLog(T("ElevatedFailed"));
             }
             return;
         }
@@ -147,40 +160,45 @@ public partial class MainWindow : Window
         var before = MemoryStatus.Query();
         var after = before;
         _operationCancellation = cancellation;
-        SetBusy(true, $"正在执行{label}...");
+        SetBusy(true, string.Format(T("Running"), label));
         try
         {
-            AddChartPoint(before, $"{label}前");
-            AppendLog($"{label}开始。优化前可用内存：{ByteSize.Format(before.AvailablePhysicalBytes)}。");
+            AddChartPoint(before, $"{label} {T("BeforeSuffix")}");
+            AppendLog(string.Format(T("OptimizeStart"), label, ByteSize.Format(before.AvailablePhysicalBytes)));
 
             after = await Task.Run(() =>
             {
                 MemoryOptimizerEngine.Optimize(
                     scope,
                     cancellation.Token,
-                    step => _ = Dispatcher.BeginInvoke(new Action(() => AppendLog($"正在{step}..."))));
+                    step => _ = Dispatcher.BeginInvoke(new Action(() => AppendLog(string.Format(T("StepProgress"), LocalizeStep(step))))));
 
                 cancellation.Token.ThrowIfCancellationRequested();
                 return MemoryStatus.Query();
             }, cancellation.Token);
 
             var diff = Math.Max(0, after.AvailablePhysicalBytes - before.AvailablePhysicalBytes);
-            AddChartPoint(after, $"{label}后");
-            _lastChartSummary = $"{label}: {ByteSize.Format(before.AvailablePhysicalBytes)} -> {ByteSize.Format(after.AvailablePhysicalBytes)}，释放约 {ByteSize.Format(diff)}。";
-            AppendLog($"{label}完成。当前可用内存：{ByteSize.Format(after.AvailablePhysicalBytes)}，释放约 {ByteSize.Format(diff)}。");
-            StateText.Text = $"{label}完成，释放约 {ByteSize.Format(diff)}。";
-            OptimizationHistoryLogger.Append(DateTime.Now, label, before.AvailablePhysicalBytes, after.AvailablePhysicalBytes, true, "完成");
+            AddChartPoint(after, $"{label} {T("AfterSuffix")}");
+            _lastChartSummary = string.Format(
+                T("ChartSummary"),
+                label,
+                ByteSize.Format(before.AvailablePhysicalBytes),
+                ByteSize.Format(after.AvailablePhysicalBytes),
+                ByteSize.Format(diff));
+            AppendLog(string.Format(T("OptimizeDoneLog"), label, ByteSize.Format(after.AvailablePhysicalBytes), ByteSize.Format(diff)));
+            StateText.Text = string.Format(T("OptimizeDoneState"), label, ByteSize.Format(diff));
+            OptimizationHistoryLogger.Append(DateTime.Now, label, before.AvailablePhysicalBytes, after.AvailablePhysicalBytes, true, T("HistoryComplete"));
         }
         catch (OperationCanceledException)
         {
-            AppendLog($"{label}已取消。");
-            StateText.Text = "已取消。";
-            OptimizationHistoryLogger.Append(DateTime.Now, label, before.AvailablePhysicalBytes, after.AvailablePhysicalBytes, false, "取消");
+            AppendLog(string.Format(T("OptimizeCanceled"), label));
+            StateText.Text = T("CanceledState");
+            OptimizationHistoryLogger.Append(DateTime.Now, label, before.AvailablePhysicalBytes, after.AvailablePhysicalBytes, false, T("HistoryCanceled"));
         }
         catch (Exception ex)
         {
-            AppendLog($"{label}失败：{ex.Message}");
-            StateText.Text = $"{label}失败。";
+            AppendLog(string.Format(T("OptimizeFailed"), label, ex.Message));
+            StateText.Text = string.Format(T("FailedState"), label);
             OptimizationHistoryLogger.Append(DateTime.Now, label, before.AvailablePhysicalBytes, after.AvailablePhysicalBytes, false, ex.Message);
         }
         finally
@@ -205,17 +223,20 @@ public partial class MainWindow : Window
         MemoryBar.Value = status.LoadPercent;
         AvailableText.Text = ByteSize.Format(status.AvailablePhysicalBytes);
         TotalText.Text = ByteSize.Format(status.TotalPhysicalBytes);
-        AdminText.Text = _isAdministrator ? "管理员：是" : "管理员：否";
-        FooterText.Text = $"最后刷新：{DateTime.Now:HH:mm:ss}";
-        CompatibilityText.Text = $"兼容性：Windows {Environment.OSVersion.Version}，{(_isAdministrator ? "当前已具备管理员权限" : "系统级优化需要 UAC 提权")}。";
+        AdminText.Text = _isAdministrator ? T("AdminYes") : T("AdminNo");
+        FooterText.Text = string.Format(T("LastRefresh"), DateTime.Now);
+        CompatibilityText.Text = string.Format(
+            T("Compatibility"),
+            Environment.OSVersion.Version,
+            _isAdministrator ? T("AdminReady") : T("AdminElevationNeeded"));
 
         if (!_isBusy)
             StateText.Text = _isAdministrator
-                ? "可直接执行系统级优化。"
-                : "系统级优化会请求管理员权限。";
+                ? T("DirectOptimizeReady")
+                : T("ElevationRequiredState");
 
         if (_settings.AutoRefresh)
-            AddChartPoint(status, "刷新");
+            AddChartPoint(status, T("RefreshLabel"));
     }
 
     private void SetBusy(bool value, string? stateText = null)
@@ -227,6 +248,7 @@ public partial class MainWindow : Window
         RecommendedButton.IsEnabled = !value;
         FullButton.IsEnabled = !value;
         SettingsButton.IsEnabled = !value;
+        LanguageButton.IsEnabled = !value;
         CancelButton.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         CancelButton.IsEnabled = value;
 
@@ -242,22 +264,48 @@ public partial class MainWindow : Window
 
     private void ApplySettings()
     {
+        ApplyLanguage();
         _refreshTimer.Interval = TimeSpan.FromSeconds(_settings.RefreshIntervalSeconds);
         if (_settings.AutoRefresh)
             _refreshTimer.Start();
         else
             _refreshTimer.Stop();
 
-        DefaultButton.Content = $"默认优化：{GetScopeLabel(_settings.DefaultScope)}";
+        DefaultButton.Content = $"{T("DefaultOptimize")}: {GetScopeLabel(_settings.DefaultScope)}";
+    }
+
+    private void ApplyLanguage()
+    {
+        Title = T("AppTitle");
+        TitleText.Text = T("AppTitle");
+        SubtitleText.Text = T("AppSubtitle");
+        MemoryLoadLabel.Text = T("MemoryLoad");
+        AvailableLabel.Text = T("AvailableMemory");
+        TotalLabel.Text = T("TotalMemory");
+        StateLabel.Text = T("Status");
+        RefreshButton.Content = T("Refresh");
+        RecommendedButton.Content = T("RecommendedOptimize");
+        FullButton.Content = T("FullOptimize");
+        SettingsButton.Content = T("Settings");
+        LanguageButton.Content = T("LanguageToggle");
+        CancelButton.Content = T("Cancel");
+        RiskTitleText.Text = T("RiskTitle");
+        RiskBodyText.Text = T("RiskBody");
+        CreditText.Text = T("FooterCredit");
+
+        if (string.IsNullOrWhiteSpace(_lastChartSummary))
+            _lastChartSummary = T("NoChartHistory");
     }
 
     private void ConfigureTrayIcon()
     {
+        _trayIcon?.Dispose();
+
         var menu = new WinForms.ContextMenuStrip();
-        menu.Items.Add("显示窗口", null, (_, _) => Dispatcher.Invoke(ShowFromTray));
-        menu.Items.Add("执行默认优化", null, async (_, _) =>
-            await Dispatcher.InvokeAsync(async () => await RequestOptimizationAsync(_settings.DefaultScope, $"{GetScopeLabel(_settings.DefaultScope)}（托盘）")));
-        menu.Items.Add("退出", null, (_, _) => Dispatcher.Invoke(RequestExit));
+        menu.Items.Add(T("TrayShow"), null, (_, _) => Dispatcher.Invoke(ShowFromTray));
+        menu.Items.Add(T("TrayDefaultOptimize"), null, async (_, _) =>
+            await Dispatcher.InvokeAsync(async () => await RequestOptimizationAsync(_settings.DefaultScope, $"{GetScopeLabel(_settings.DefaultScope)} ({T("TraySuffix")})")));
+        menu.Items.Add(T("TrayExit"), null, (_, _) => Dispatcher.Invoke(RequestExit));
 
         _trayIcon = new WinForms.NotifyIcon
         {
@@ -271,8 +319,26 @@ public partial class MainWindow : Window
 
     private static Icon LoadTrayIcon()
     {
-        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
-        return File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
+        try
+        {
+            var resource = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Assets/AppIcon.ico"));
+            if (resource?.Stream is not null)
+            {
+                using var source = resource.Stream;
+                using var buffer = new MemoryStream();
+                source.CopyTo(buffer);
+                buffer.Position = 0;
+
+                using var icon = new Icon(buffer);
+                return (Icon)icon.Clone();
+            }
+        }
+        catch
+        {
+            // Fall back to the Windows default icon if the embedded resource cannot be loaded.
+        }
+
+        return SystemIcons.Application;
     }
 
     private void ShowFromTray()
@@ -341,11 +407,28 @@ public partial class MainWindow : Window
         }
 
         var last = _chartPoints[^1];
-        ChartText.Text = $"{_lastChartSummary} 最近记录：{last.Label}，可用 {ByteSize.Format(last.AvailableBytes)}。";
+        ChartText.Text = string.Format(T("RecentChart"), _lastChartSummary, last.Label, ByteSize.Format(last.AvailableBytes));
     }
 
-    private static string GetScopeLabel(MemoryOptimizationScope scope) =>
-        scope == MemoryOptimizationScope.All ? "深度优化" : "推荐优化";
+    private string GetScopeLabel(MemoryOptimizationScope scope) =>
+        scope == MemoryOptimizationScope.All ? T("FullOptimize") : T("RecommendedOptimize");
+
+    private string T(string key) => TextCatalog.T(_settings.Language, key);
+
+    private string LocalizeStep(string step) => _settings.Language == UiLanguage.Chinese
+        ? step
+        : step switch
+        {
+            "获取系统内存管理权限" => "acquiring memory-management privileges",
+            "清理进程工作集" => "emptying process working sets",
+            "刷新文件缓存" => "flushing file cache",
+            "刷新已修改页面列表" => "flushing modified page list",
+            "清理备用页面列表" => "purging standby list",
+            "清理低优先级备用页面" => "purging low-priority standby list",
+            "同步注册表内存" => "reconciling registry memory",
+            "合并物理内存页面" => "combining physical memory pages",
+            _ => step
+        };
 
     private readonly record struct MemoryChartPoint(DateTime Time, string Label, ulong AvailableBytes, ulong TotalBytes);
 }

@@ -4,15 +4,20 @@ namespace MemoryOptimizer;
 
 public partial class SettingsWindow : Window
 {
+    private readonly UiLanguage _language;
+
     public AppSettings Settings { get; }
 
-    public SettingsWindow(AppSettings settings)
+    public SettingsWindow(AppSettings settings, UiLanguage language)
     {
         InitializeComponent();
+        _language = language;
         Settings = settings.Clone();
 
-        DefaultScopeBox.Items.Add(new ScopeItem("推荐优化", MemoryOptimizationScope.Recommended));
-        DefaultScopeBox.Items.Add(new ScopeItem("深度优化", MemoryOptimizationScope.All));
+        ApplyLanguage();
+
+        DefaultScopeBox.Items.Add(new ScopeItem(T("RecommendedOptimize"), MemoryOptimizationScope.Recommended));
+        DefaultScopeBox.Items.Add(new ScopeItem(T("FullOptimize"), MemoryOptimizationScope.All));
         DefaultScopeBox.SelectedValuePath = nameof(ScopeItem.Scope);
         DefaultScopeBox.DisplayMemberPath = nameof(ScopeItem.Name);
         DefaultScopeBox.SelectedValue = Settings.DefaultScope;
@@ -33,6 +38,21 @@ public partial class SettingsWindow : Window
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+
+    private void ApplyLanguage()
+    {
+        Title = T("SettingsTitle");
+        TitleText.Text = T("SettingsTitle");
+        SubtitleText.Text = T("SettingsSubtitle");
+        DefaultScopeLabel.Text = T("DefaultScope");
+        AutoRefreshBox.Content = T("AutoRefresh");
+        AutoElevationBox.Content = T("AutoElevation");
+        RiskText.Text = T("SettingsRisk");
+        CancelButton.Content = T("Cancel");
+        SaveButton.Content = T("Save");
+    }
+
+    private string T(string key) => TextCatalog.T(_language, key);
 
     private sealed record ScopeItem(string Name, MemoryOptimizationScope Scope);
 }

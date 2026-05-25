@@ -43,8 +43,8 @@
 
         <DockPanel Grid.Row="0" Margin="0,0,0,18">
             <StackPanel DockPanel.Dock="Left">
-                <TextBlock Text="内存优化" FontSize="28" FontWeight="SemiBold" Foreground="#142034"/>
-                <TextBlock Text="Windows 物理内存状态与工作集优化" FontSize="14" Foreground="#607086" Margin="0,4,0,0"/>
+                <TextBlock x:Name="TitleText" Text="内存优化" FontSize="28" FontWeight="SemiBold" Foreground="#142034"/>
+                <TextBlock x:Name="SubtitleText" Text="Windows 物理内存状态与工作集优化" FontSize="14" Foreground="#607086" Margin="0,4,0,0"/>
             </StackPanel>
             <Border DockPanel.Dock="Right"
                     Padding="10,6"
@@ -69,7 +69,7 @@
                     CornerRadius="8"
                     Padding="20">
                 <StackPanel>
-                    <TextBlock Text="内存占用" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock x:Name="MemoryLoadLabel" Text="内存占用" Style="{StaticResource MetricLabel}"/>
                     <TextBlock x:Name="MemoryLoadText" Style="{StaticResource MetricValue}"/>
                     <ProgressBar x:Name="MemoryBar"
                                  Height="12"
@@ -77,13 +77,13 @@
                                  Maximum="100"
                                  Margin="0,0,0,24"/>
 
-                    <TextBlock Text="可用内存" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock x:Name="AvailableLabel" Text="可用内存" Style="{StaticResource MetricLabel}"/>
                     <TextBlock x:Name="AvailableText" Style="{StaticResource MetricValue}"/>
 
-                    <TextBlock Text="总内存" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock x:Name="TotalLabel" Text="总内存" Style="{StaticResource MetricLabel}"/>
                     <TextBlock x:Name="TotalText" Style="{StaticResource MetricValue}"/>
 
-                    <TextBlock Text="状态" Style="{StaticResource MetricLabel}"/>
+                    <TextBlock x:Name="StateLabel" Text="状态" Style="{StaticResource MetricLabel}"/>
                     <TextBlock x:Name="StateText"
                                TextWrapping="Wrap"
                                Foreground="#182231"
@@ -112,6 +112,7 @@
                         <Button x:Name="RecommendedButton" Content="推荐优化" Click="Recommended_Click"/>
                         <Button x:Name="FullButton" Content="深度优化" Click="Full_Click"/>
                         <Button x:Name="SettingsButton" Content="设置" Click="Settings_Click"/>
+                        <Button x:Name="LanguageButton" Content="English" Click="Language_Click"/>
                         <Button x:Name="CancelButton" Content="取消" Click="Cancel_Click" Visibility="Collapsed"/>
                     </WrapPanel>
 
@@ -123,11 +124,13 @@
                             Padding="12"
                             Margin="0,0,0,12">
                         <StackPanel>
-                            <TextBlock Text="风险提示"
+                            <TextBlock x:Name="RiskTitleText"
+                                       Text="风险提示"
                                        Foreground="#624600"
                                        FontWeight="SemiBold"
                                        Margin="0,0,0,4"/>
-                            <TextBlock Text="深度优化会清理文件缓存，机械硬盘或低内存压力场景下可能造成短时间卡顿。建议只在内存紧张或启动大型程序前使用。"
+                            <TextBlock x:Name="RiskBodyText"
+                                       Text="深度优化会清理文件缓存，机械硬盘或低内存压力场景下可能造成短时间卡顿。建议只在内存紧张或启动大型程序前使用。"
                                        TextWrapping="Wrap"
                                        Foreground="#624600"
                                        FontSize="12"/>
@@ -189,7 +192,8 @@
                        DockPanel.Dock="Left"
                        Foreground="#607086"
                        FontSize="12"/>
-            <TextBlock Text="作者：aidendenden · MIT 协议"
+            <TextBlock x:Name="CreditText"
+                       Text="作者：aidendenden · MIT 协议 · V1.0.0"
                        DockPanel.Dock="Right"
                        Foreground="#607086"
                        FontSize="12"

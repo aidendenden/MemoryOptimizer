@@ -15,12 +15,12 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,18">
-            <TextBlock Text="设置" FontSize="22" FontWeight="SemiBold" Foreground="#142034"/>
-            <TextBlock Text="调整默认优化方式和窗口行为" Foreground="#607086" Margin="0,4,0,0"/>
+            <TextBlock x:Name="TitleText" Text="设置" FontSize="22" FontWeight="SemiBold" Foreground="#142034"/>
+            <TextBlock x:Name="SubtitleText" Text="调整默认优化方式和窗口行为" Foreground="#607086" Margin="0,4,0,0"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1">
-            <TextBlock Text="默认优化模式" Foreground="#334155" Margin="0,0,0,6"/>
+            <TextBlock x:Name="DefaultScopeLabel" Text="默认优化模式" Foreground="#334155" Margin="0,0,0,6"/>
             <ComboBox x:Name="DefaultScopeBox" Height="32" Margin="0,0,0,16"/>
 
             <CheckBox x:Name="AutoRefreshBox"
@@ -30,15 +30,16 @@
                       Content="优化时自动请求管理员权限"
                       Margin="0,0,0,12"/>
 
-            <TextBlock Text="深度优化会额外清理文件缓存，机械硬盘环境下可能短时间卡顿。"
+            <TextBlock x:Name="RiskText"
+                       Text="深度优化会额外清理文件缓存，机械硬盘环境下可能短时间卡顿。"
                        TextWrapping="Wrap"
                        Foreground="#8A5A00"
                        Margin="0,8,0,0"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="取消" MinWidth="76" Margin="0,0,8,0" Click="Cancel_Click"/>
-            <Button Content="保存" MinWidth="76" Click="Save_Click"/>
+            <Button x:Name="CancelButton" Content="取消" MinWidth="76" Margin="0,0,8,0" Click="Cancel_Click"/>
+            <Button x:Name="SaveButton" Content="保存" MinWidth="76" Click="Save_Click"/>
         </StackPanel>
     </Grid>
 </Window>
