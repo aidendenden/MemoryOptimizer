@@ -27,7 +27,6 @@ internal static class Program
             {
                 "status" => ShowStatus(),
                 "optimize" => Optimize(args.Skip(1).ToArray()),
-                "trim" => TrimProcesses(args.Skip(1).ToArray()),
                 "help" or "--help" or "-h" => ShowHelp(),
                 _ => Unknown(command)
             };
@@ -125,40 +124,6 @@ internal static class Program
         return 0;
     }
 
-    private static int TrimProcesses(string[] args)
-    {
-        var processName = TryReadOption(args, "--name");
-        var dryRun = args.Any(a => a.Equals("--dry-run", StringComparison.OrdinalIgnoreCase));
-
-        if (args.Any(a => a is "--help" or "-h"))
-        {
-            Console.WriteLine("Usage: MemoryOptimizer trim [--name processName] [--dry-run]");
-            return 0;
-        }
-
-        var result = ProcessWorkingSetTrimmer.Trim(processName, dryRun);
-        Console.WriteLine($"Matched: {result.Matched}");
-        Console.WriteLine($"Trimmed: {result.Trimmed}");
-        Console.WriteLine($"Failed:  {result.Failed}");
-        if (dryRun) Console.WriteLine("Dry run: no process working set was trimmed.");
-        return result.Failed == 0 ? 0 : 3;
-    }
-
-    private static string? TryReadOption(string[] args, string option)
-    {
-        for (var i = 0; i < args.Length; i++)
-        {
-            if (args[i].Equals(option, StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
-                return args[i + 1];
-
-            var prefix = option + "=";
-            if (args[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return args[i][prefix.Length..];
-        }
-
-        return null;
-    }
-
     private static int Unknown(string command)
     {
         Console.Error.WriteLine($"Unknown command: {command}");
@@ -173,13 +138,11 @@ internal static class Program
           MemoryOptimizer
           MemoryOptimizer status
           MemoryOptimizer optimize [--recommended|--full|--scope <names>] [--no-elevate] [--dry-run]
-          MemoryOptimizer trim [--name processName] [--dry-run]
 
         Commands:
           no args    Open the desktop window.
           status     Show current physical memory status.
           optimize   Run PCL-style system memory optimization. Requires administrator privileges.
-          trim       Trim process working sets with EmptyWorkingSet. This is less powerful than optimize.
         """);
         return 0;
     }

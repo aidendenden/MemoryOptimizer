@@ -89,10 +89,6 @@ internal static partial class NativeMethods
         IntPtr systemInformation,
         uint systemInformationLength);
 
-    [DllImport("psapi.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool EmptyWorkingSet(IntPtr hProcess);
-
     public static MemoryStatusEx GetMemoryStatus()
     {
         var status = new MemoryStatusEx

@@ -2,14 +2,13 @@
 
 一个 Windows 内存优化工具原型，目标是复刻 PCL2 / PCL CE 中“启动前优化内存”的核心思路。
 
-默认启动会打开桌面窗口。窗口里可以查看当前物理内存状态，并执行推荐优化、深度优化、取消正在排队的后续优化步骤，或只裁剪 Java 进程工作集。关闭窗口时如果仍在优化，会先请求取消，等当前步骤结束后再退出。
+默认启动会打开桌面窗口。窗口里可以查看当前物理内存状态，并执行推荐优化、深度优化，或取消正在排队的后续优化步骤。关闭窗口时如果仍在优化，会先请求取消，等当前步骤结束后再退出。
 
 ## 原理
 
-这个工具不会“创造”内存，也不会修复应用本身的内存泄漏。它主要做三类事情：
+这个工具不会“创造”内存，也不会修复应用本身的内存泄漏。它主要做两类事情：
 
 - 读取当前物理内存状态：`GlobalMemoryStatusEx`
-- 裁剪进程工作集：`EmptyWorkingSet`
 - 管理系统内存列表：`NtSetSystemInformation`
 
 `optimize` 命令需要管理员权限，因为它会启用 `SeProfileSingleProcessPrivilege` 和 `SeIncreaseQuotaPrivilege` 后调用 NT 内核接口。机械硬盘环境下，清理备用列表或文件缓存后可能出现短时间卡顿，因为后续访问文件时需要重新从磁盘读取。
@@ -22,7 +21,6 @@ dotnet run --project . -- status
 dotnet run --project . -- optimize --dry-run
 dotnet run --project . -- optimize --recommended
 dotnet run --project . -- optimize --full
-dotnet run --project . -- trim --name java
 ```
 
 ## 命令
@@ -30,7 +28,6 @@ dotnet run --project . -- trim --name java
 - 无参数：打开桌面窗口。
 - `status`：显示内存占用、可用物理内存、总物理内存和当前是否管理员。
 - `optimize`：执行 PCL 风格的系统级优化，默认使用推荐范围；非管理员运行时会请求 UAC 提权。
-- `trim`：对进程执行 `EmptyWorkingSet`，可用 `--name java` 只处理 Java / Minecraft 进程；这只裁剪工作集，不会关闭 Java，也不会修改 Minecraft 的 JVM 内存参数。
 
 ## 优化范围
 

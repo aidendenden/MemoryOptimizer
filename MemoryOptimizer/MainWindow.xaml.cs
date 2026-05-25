@@ -39,46 +39,6 @@ public partial class MainWindow : Window
     private async void Full_Click(object sender, RoutedEventArgs e) =>
         await RequestOptimizationAsync(MemoryOptimizationScope.All, "深度优化");
 
-    private async void TrimJava_Click(object sender, RoutedEventArgs e)
-    {
-        if (_isBusy) return;
-
-        using var cancellation = new CancellationTokenSource();
-        _operationCancellation = cancellation;
-        SetBusy(true, "正在裁剪 Java 进程工作集...");
-        try
-        {
-            var result = await Task.Run(
-                () => ProcessWorkingSetTrimmer.Trim("java", dryRun: false, cancellation.Token),
-                cancellation.Token);
-            AppendLog($"Java 工作集裁剪完成。匹配 {result.Matched}，成功 {result.Trimmed}，失败 {result.Failed}。");
-            StateText.Text = result.Matched == 0 ? "未找到 Java 进程。" : "Java 工作集裁剪完成。";
-        }
-        catch (OperationCanceledException)
-        {
-            AppendLog("Java 工作集裁剪已取消。");
-            StateText.Text = "已取消。";
-        }
-        catch (Exception ex)
-        {
-            AppendLog($"裁剪 Java 失败：{ex.Message}");
-            StateText.Text = "裁剪 Java 失败。";
-        }
-        finally
-        {
-            _operationCancellation = null;
-            SetBusy(false);
-            if (_closeAfterCancellation)
-            {
-                _ = Dispatcher.BeginInvoke(Close);
-            }
-            else
-            {
-                RefreshStatus();
-            }
-        }
-    }
-
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
         RequestCancel("正在取消，当前步骤结束后停止。", "已请求取消，当前步骤结束后会停止后续操作。");
@@ -203,7 +163,6 @@ public partial class MainWindow : Window
         RefreshButton.IsEnabled = !value;
         RecommendedButton.IsEnabled = !value;
         FullButton.IsEnabled = !value;
-        TrimJavaButton.IsEnabled = !value;
         CancelButton.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         CancelButton.IsEnabled = value;
 
