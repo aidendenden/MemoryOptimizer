@@ -192,7 +192,7 @@
                        Foreground="#607086"
                        FontSize="12"/>
             <TextBlock x:Name="CreditText"
-                       Text="作者：aidendenden · MIT 协议 · V1.0.0"
+                       Text="作者：aidendenden · MIT 协议 · v1.0.1"
                        DockPanel.Dock="Right"
                        Foreground="#607086"
                        FontSize="12"
