@@ -108,8 +108,7 @@
 
                     <WrapPanel Grid.Row="0">
                         <Button x:Name="RefreshButton" Content="刷新" Click="Refresh_Click"/>
-                        <Button x:Name="DefaultButton" Content="默认优化" Click="Default_Click"/>
-                        <Button x:Name="RecommendedButton" Content="推荐优化" Click="Recommended_Click"/>
+                        <Button x:Name="LightButton" Content="轻度优化" Click="Light_Click"/>
                         <Button x:Name="FullButton" Content="深度优化" Click="Full_Click"/>
                         <Button x:Name="SettingsButton" Content="设置" Click="Settings_Click"/>
                         <Button x:Name="LanguageButton" Content="English" Click="Language_Click"/>

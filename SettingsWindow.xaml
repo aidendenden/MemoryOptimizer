@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="设置"
         Width="420"
-        Height="300"
+        Height="260"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="#F5F7FA">
@@ -16,13 +16,10 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,18">
             <TextBlock x:Name="TitleText" Text="设置" FontSize="22" FontWeight="SemiBold" Foreground="#142034"/>
-            <TextBlock x:Name="SubtitleText" Text="调整默认优化方式和窗口行为" Foreground="#607086" Margin="0,4,0,0"/>
+            <TextBlock x:Name="SubtitleText" Text="调整刷新和窗口行为" Foreground="#607086" Margin="0,4,0,0"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1">
-            <TextBlock x:Name="DefaultScopeLabel" Text="默认优化模式" Foreground="#334155" Margin="0,0,0,6"/>
-            <ComboBox x:Name="DefaultScopeBox" Height="32" Margin="0,0,0,16"/>
-
             <CheckBox x:Name="AutoRefreshBox"
                       Content="自动刷新内存状态"
                       Margin="0,0,0,12"/>

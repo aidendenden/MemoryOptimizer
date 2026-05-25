@@ -63,7 +63,7 @@ internal static class Program
 
             return args[i + 1].ToLowerInvariant() switch
             {
-                "recommended" => MemoryOptimizationScope.Recommended,
+                "light" or "recommended" => MemoryOptimizationScope.Light,
                 "full" => MemoryOptimizationScope.All,
                 _ => null
             };
@@ -137,7 +137,7 @@ internal static class Program
         Usage:
           MemoryOptimizer
           MemoryOptimizer status
-          MemoryOptimizer optimize [--recommended|--full|--scope <names>] [--no-elevate] [--dry-run]
+          MemoryOptimizer optimize [--light|--full|--scope <names>] [--no-elevate] [--dry-run]
 
         Commands:
           no args    Open the desktop window.
@@ -151,7 +151,7 @@ internal static class Program
     {
         Console.WriteLine("""
         Usage:
-          MemoryOptimizer optimize [--recommended|--full|--scope <names>] [--no-elevate] [--dry-run]
+          MemoryOptimizer optimize [--light|--full|--scope <names>] [--no-elevate] [--dry-run]
 
         Scopes:
           EmptyWorkingSets
@@ -163,7 +163,7 @@ internal static class Program
           CombinePhysicalMemory
 
         Examples:
-          MemoryOptimizer optimize --recommended
+          MemoryOptimizer optimize --light
           MemoryOptimizer optimize --full
           MemoryOptimizer optimize --scope EmptyWorkingSets,PurgeStandbyList
         """);

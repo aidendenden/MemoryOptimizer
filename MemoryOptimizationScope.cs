@@ -12,10 +12,12 @@ public enum MemoryOptimizationScope
     RegistryReconciliation = 1 << 5,
     CombinePhysicalMemory = 1 << 6,
 
-    Recommended = EmptyWorkingSets
-                  | FlushModifiedList
-                  | PurgeStandbyList
-                  | PurgeLowPriorityStandbyList,
+    Light = EmptyWorkingSets
+            | FlushModifiedList
+            | PurgeStandbyList
+            | PurgeLowPriorityStandbyList,
+
+    Recommended = Light,
 
     All = EmptyWorkingSets
           | FlushFileCache

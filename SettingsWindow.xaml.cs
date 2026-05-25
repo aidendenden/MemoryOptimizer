@@ -16,21 +16,12 @@ public partial class SettingsWindow : Window
 
         ApplyLanguage();
 
-        DefaultScopeBox.Items.Add(new ScopeItem(T("RecommendedOptimize"), MemoryOptimizationScope.Recommended));
-        DefaultScopeBox.Items.Add(new ScopeItem(T("FullOptimize"), MemoryOptimizationScope.All));
-        DefaultScopeBox.SelectedValuePath = nameof(ScopeItem.Scope);
-        DefaultScopeBox.DisplayMemberPath = nameof(ScopeItem.Name);
-        DefaultScopeBox.SelectedValue = Settings.DefaultScope;
-
         AutoRefreshBox.IsChecked = Settings.AutoRefresh;
         AutoElevationBox.IsChecked = Settings.AutoRequestElevation;
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        Settings.DefaultScope = DefaultScopeBox.SelectedValue is MemoryOptimizationScope scope
-            ? scope
-            : MemoryOptimizationScope.Recommended;
         Settings.AutoRefresh = AutoRefreshBox.IsChecked == true;
         Settings.AutoRequestElevation = AutoElevationBox.IsChecked == true;
 
@@ -44,7 +35,6 @@ public partial class SettingsWindow : Window
         Title = T("SettingsTitle");
         TitleText.Text = T("SettingsTitle");
         SubtitleText.Text = T("SettingsSubtitle");
-        DefaultScopeLabel.Text = T("DefaultScope");
         AutoRefreshBox.Content = T("AutoRefresh");
         AutoElevationBox.Content = T("AutoElevation");
         RiskText.Text = T("SettingsRisk");
@@ -53,6 +43,4 @@ public partial class SettingsWindow : Window
     }
 
     private string T(string key) => TextCatalog.T(_language, key);
-
-    private sealed record ScopeItem(string Name, MemoryOptimizationScope Scope);
 }

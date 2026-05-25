@@ -45,11 +45,8 @@ public partial class MainWindow : Window
 
     private void Refresh_Click(object sender, RoutedEventArgs e) => RefreshStatus();
 
-    private async void Default_Click(object sender, RoutedEventArgs e) =>
-        await RequestOptimizationAsync(_settings.DefaultScope, $"{GetScopeLabel(_settings.DefaultScope)} ({T("DefaultSuffix")})");
-
-    private async void Recommended_Click(object sender, RoutedEventArgs e) =>
-        await RequestOptimizationAsync(MemoryOptimizationScope.Recommended, GetScopeLabel(MemoryOptimizationScope.Recommended));
+    private async void Light_Click(object sender, RoutedEventArgs e) =>
+        await RequestOptimizationAsync(MemoryOptimizationScope.Light, GetScopeLabel(MemoryOptimizationScope.Light));
 
     private async void Full_Click(object sender, RoutedEventArgs e) =>
         await RequestOptimizationAsync(MemoryOptimizationScope.All, GetScopeLabel(MemoryOptimizationScope.All));
@@ -133,7 +130,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            var scopeArg = scope == MemoryOptimizationScope.All ? "full" : "recommended";
+            var scopeArg = scope == MemoryOptimizationScope.All ? "full" : "light";
             AppendLog(string.Format(T("OpeningElevated"), label));
             var result = WindowsSecurity.RelaunchElevated(new[] { "gui", "--run", scopeArg });
             if (result == 0)
@@ -244,8 +241,7 @@ public partial class MainWindow : Window
         _isBusy = value;
         BusyBar.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         RefreshButton.IsEnabled = !value;
-        DefaultButton.IsEnabled = !value;
-        RecommendedButton.IsEnabled = !value;
+        LightButton.IsEnabled = !value;
         FullButton.IsEnabled = !value;
         SettingsButton.IsEnabled = !value;
         LanguageButton.IsEnabled = !value;
@@ -270,8 +266,6 @@ public partial class MainWindow : Window
             _refreshTimer.Start();
         else
             _refreshTimer.Stop();
-
-        DefaultButton.Content = $"{T("DefaultOptimize")}: {GetScopeLabel(_settings.DefaultScope)}";
     }
 
     private void ApplyLanguage()
@@ -284,7 +278,7 @@ public partial class MainWindow : Window
         TotalLabel.Text = T("TotalMemory");
         StateLabel.Text = T("Status");
         RefreshButton.Content = T("Refresh");
-        RecommendedButton.Content = T("RecommendedOptimize");
+        LightButton.Content = T("LightOptimize");
         FullButton.Content = T("FullOptimize");
         SettingsButton.Content = T("Settings");
         LanguageButton.Content = T("LanguageToggle");
@@ -303,8 +297,6 @@ public partial class MainWindow : Window
 
         var menu = new WinForms.ContextMenuStrip();
         menu.Items.Add(T("TrayShow"), null, (_, _) => Dispatcher.Invoke(ShowFromTray));
-        menu.Items.Add(T("TrayDefaultOptimize"), null, async (_, _) =>
-            await Dispatcher.InvokeAsync(async () => await RequestOptimizationAsync(_settings.DefaultScope, $"{GetScopeLabel(_settings.DefaultScope)} ({T("TraySuffix")})")));
         menu.Items.Add(T("TrayExit"), null, (_, _) => Dispatcher.Invoke(RequestExit));
 
         _trayIcon = new WinForms.NotifyIcon
@@ -411,7 +403,7 @@ public partial class MainWindow : Window
     }
 
     private string GetScopeLabel(MemoryOptimizationScope scope) =>
-        scope == MemoryOptimizationScope.All ? T("FullOptimize") : T("RecommendedOptimize");
+        scope == MemoryOptimizationScope.All ? T("FullOptimize") : T("LightOptimize");
 
     private string T(string key) => TextCatalog.T(_settings.Language, key);
 

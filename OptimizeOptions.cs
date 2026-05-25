@@ -2,7 +2,7 @@ namespace MemoryOptimizer;
 
 internal sealed class OptimizeOptions
 {
-    public MemoryOptimizationScope Scope { get; private set; } = MemoryOptimizationScope.Recommended;
+    public MemoryOptimizationScope Scope { get; private set; } = MemoryOptimizationScope.Light;
     public bool NoElevate { get; private set; }
     public bool DryRun { get; private set; }
     public bool ShowHelp { get; private set; }
@@ -19,9 +19,10 @@ internal sealed class OptimizeOptions
             {
                 options.ShowHelp = true;
             }
-            else if (arg.Equals("--recommended", StringComparison.OrdinalIgnoreCase))
+            else if (arg.Equals("--light", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--recommended", StringComparison.OrdinalIgnoreCase))
             {
-                options.Scope = MemoryOptimizationScope.Recommended;
+                options.Scope = MemoryOptimizationScope.Light;
             }
             else if (arg.Equals("--full", StringComparison.OrdinalIgnoreCase))
             {

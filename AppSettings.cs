@@ -7,7 +7,6 @@ public sealed class AppSettings
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-    public MemoryOptimizationScope DefaultScope { get; set; } = MemoryOptimizationScope.Recommended;
     public UiLanguage Language { get; set; } = UiLanguage.Chinese;
     public bool AutoRefresh { get; set; } = true;
     public bool AutoRequestElevation { get; set; } = true;
@@ -32,7 +31,6 @@ public sealed class AppSettings
 
     public AppSettings Clone() => new()
     {
-        DefaultScope = DefaultScope,
         Language = Language,
         AutoRefresh = AutoRefresh,
         AutoRequestElevation = AutoRequestElevation,
@@ -41,7 +39,6 @@ public sealed class AppSettings
 
     public void CopyFrom(AppSettings source)
     {
-        DefaultScope = source.DefaultScope;
         Language = source.Language;
         AutoRefresh = source.AutoRefresh;
         AutoRequestElevation = source.AutoRequestElevation;
@@ -58,9 +55,6 @@ public sealed class AppSettings
 
     private void Normalize()
     {
-        if (DefaultScope is not (MemoryOptimizationScope.Recommended or MemoryOptimizationScope.All))
-            DefaultScope = MemoryOptimizationScope.Recommended;
-
         if (Language is not (UiLanguage.Chinese or UiLanguage.English))
             Language = UiLanguage.Chinese;
 
