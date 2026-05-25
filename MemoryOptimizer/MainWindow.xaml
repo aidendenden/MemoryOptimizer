@@ -6,6 +6,7 @@
         Height="650"
         MinWidth="760"
         MinHeight="560"
+        Icon="Assets/AppIcon.ico"
         Background="#F5F7FA"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"

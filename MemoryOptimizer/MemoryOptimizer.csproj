@@ -10,6 +10,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>MemoryOptimizer</AssemblyName>
     <RootNamespace>MemoryOptimizer</RootNamespace>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Version>0.2.0</Version>
     <FileVersion>0.2.0.0</FileVersion>
     <Authors>aidendenden</Authors>
@@ -19,5 +20,10 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\AppIcon.ico" />
+    <None Include="Assets\AppIcon.png" CopyToOutputDirectory="Never" />
+  </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -260,12 +261,18 @@ public partial class MainWindow : Window
 
         _trayIcon = new WinForms.NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = LoadTrayIcon(),
             Text = "Memory Optimizer",
             Visible = true,
             ContextMenuStrip = menu
         };
         _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(ShowFromTray);
+    }
+
+    private static Icon LoadTrayIcon()
+    {
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+        return File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
     }
 
     private void ShowFromTray()
