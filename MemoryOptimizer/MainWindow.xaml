@@ -130,10 +130,16 @@
             </Border>
         </Grid>
 
-        <TextBlock Grid.Row="2"
-                   x:Name="FooterText"
-                   Margin="0,14,0,0"
-                   Foreground="#607086"
-                   FontSize="12"/>
+        <DockPanel Grid.Row="2" Margin="0,14,0,0">
+            <TextBlock x:Name="FooterText"
+                       DockPanel.Dock="Left"
+                       Foreground="#607086"
+                       FontSize="12"/>
+            <TextBlock Text="作者：aidendenden · MIT 协议"
+                       DockPanel.Dock="Right"
+                       Foreground="#607086"
+                       FontSize="12"
+                       HorizontalAlignment="Right"/>
+        </DockPanel>
     </Grid>
 </Window>
