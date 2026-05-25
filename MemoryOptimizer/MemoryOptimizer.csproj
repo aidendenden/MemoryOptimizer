@@ -4,11 +4,20 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows10.0.17763.0</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>MemoryOptimizer</AssemblyName>
     <RootNamespace>MemoryOptimizer</RootNamespace>
+    <Version>0.2.0</Version>
+    <FileVersion>0.2.0.0</FileVersion>
+    <Authors>aidendenden</Authors>
+    <Company>aidendenden</Company>
+    <Description>Windows memory optimization utility</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
 </Project>

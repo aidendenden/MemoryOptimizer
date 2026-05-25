@@ -45,7 +45,7 @@ internal static class Program
 
     private static int RunGui(string[] args)
     {
-        var app = new Application
+        var app = new System.Windows.Application
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose
         };
