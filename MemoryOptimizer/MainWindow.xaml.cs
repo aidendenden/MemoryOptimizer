@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -8,6 +9,7 @@ public partial class MainWindow : Window
     private readonly MemoryOptimizationScope? _startupScope;
     private readonly DispatcherTimer _refreshTimer = new();
     private CancellationTokenSource? _operationCancellation;
+    private bool _closeAfterCancellation;
     private bool _isBusy;
 
     public MainWindow(MemoryOptimizationScope? startupScope = null)
@@ -66,18 +68,39 @@ public partial class MainWindow : Window
         {
             _operationCancellation = null;
             SetBusy(false);
-            RefreshStatus();
+            if (_closeAfterCancellation)
+            {
+                _ = Dispatcher.BeginInvoke(Close);
+            }
+            else
+            {
+                RefreshStatus();
+            }
         }
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
+        RequestCancel("正在取消，当前步骤结束后停止。", "已请求取消，当前步骤结束后会停止后续操作。");
+    }
+
+    private void Window_Closing(object? sender, CancelEventArgs e)
+    {
+        if (!_isBusy || _operationCancellation is null) return;
+
+        e.Cancel = true;
+        _closeAfterCancellation = true;
+        RequestCancel("正在关闭，当前步骤结束后退出。", "已请求关闭，当前步骤结束后会退出。");
+    }
+
+    private void RequestCancel(string stateText, string logMessage)
+    {
         if (_operationCancellation is null || _operationCancellation.IsCancellationRequested) return;
 
         _operationCancellation.Cancel();
         CancelButton.IsEnabled = false;
-        StateText.Text = "正在取消，当前步骤结束后停止。";
-        AppendLog("已请求取消，当前步骤结束后会停止后续操作。");
+        StateText.Text = stateText;
+        AppendLog(logMessage);
     }
 
     private async Task RequestOptimizationAsync(MemoryOptimizationScope scope, string label)
@@ -146,7 +169,14 @@ public partial class MainWindow : Window
         {
             _operationCancellation = null;
             SetBusy(false);
-            RefreshStatus();
+            if (_closeAfterCancellation)
+            {
+                _ = Dispatcher.BeginInvoke(Close);
+            }
+            else
+            {
+                RefreshStatus();
+            }
         }
     }
 

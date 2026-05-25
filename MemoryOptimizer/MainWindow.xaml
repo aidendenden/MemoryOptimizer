@@ -8,7 +8,8 @@
         MinHeight="460"
         Background="#F5F7FA"
         WindowStartupLocation="CenterScreen"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="MinHeight" Value="36"/>
