@@ -7,6 +7,7 @@ public partial class MainWindow : Window
 {
     private readonly MemoryOptimizationScope? _startupScope;
     private readonly DispatcherTimer _refreshTimer = new();
+    private CancellationTokenSource? _operationCancellation;
     private bool _isBusy;
 
     public MainWindow(MemoryOptimizationScope? startupScope = null)
@@ -40,12 +41,21 @@ public partial class MainWindow : Window
     {
         if (_isBusy) return;
 
+        using var cancellation = new CancellationTokenSource();
+        _operationCancellation = cancellation;
         SetBusy(true, "正在裁剪 Java 进程工作集...");
         try
         {
-            var result = await Task.Run(() => ProcessWorkingSetTrimmer.Trim("java", dryRun: false));
+            var result = await Task.Run(
+                () => ProcessWorkingSetTrimmer.Trim("java", dryRun: false, cancellation.Token),
+                cancellation.Token);
             AppendLog($"Java 工作集裁剪完成。匹配 {result.Matched}，成功 {result.Trimmed}，失败 {result.Failed}。");
             StateText.Text = result.Matched == 0 ? "未找到 Java 进程。" : "Java 工作集裁剪完成。";
+        }
+        catch (OperationCanceledException)
+        {
+            AppendLog("Java 工作集裁剪已取消。");
+            StateText.Text = "已取消。";
         }
         catch (Exception ex)
         {
@@ -54,9 +64,20 @@ public partial class MainWindow : Window
         }
         finally
         {
+            _operationCancellation = null;
             SetBusy(false);
             RefreshStatus();
         }
+    }
+
+    private void Cancel_Click(object sender, RoutedEventArgs e)
+    {
+        if (_operationCancellation is null || _operationCancellation.IsCancellationRequested) return;
+
+        _operationCancellation.Cancel();
+        CancelButton.IsEnabled = false;
+        StateText.Text = "正在取消，当前步骤结束后停止。";
+        AppendLog("已请求取消，当前步骤结束后会停止后续操作。");
     }
 
     private async Task RequestOptimizationAsync(MemoryOptimizationScope scope, string label)
@@ -67,8 +88,17 @@ public partial class MainWindow : Window
         {
             var scopeArg = scope == MemoryOptimizationScope.All ? "full" : "recommended";
             AppendLog($"{label} 需要管理员权限，正在打开管理员窗口...");
-            WindowsSecurity.RelaunchElevated(new[] { "gui", "--run", scopeArg });
-            StateText.Text = "已请求管理员权限，请在弹出的 UAC 窗口中确认。";
+            var result = WindowsSecurity.RelaunchElevated(new[] { "gui", "--run", scopeArg });
+            if (result == 0)
+            {
+                AppendLog("管理员窗口已启动，正在关闭当前普通权限窗口。");
+                Application.Current.Shutdown();
+            }
+            else
+            {
+                StateText.Text = "管理员窗口未启动，优化已取消。";
+                AppendLog("管理员窗口未启动，优化已取消。");
+            }
             return;
         }
 
@@ -79,6 +109,8 @@ public partial class MainWindow : Window
     {
         if (_isBusy) return;
 
+        using var cancellation = new CancellationTokenSource();
+        _operationCancellation = cancellation;
         SetBusy(true, $"正在执行{label}...");
         try
         {
@@ -87,13 +119,23 @@ public partial class MainWindow : Window
 
             var after = await Task.Run(() =>
             {
-                MemoryOptimizerEngine.Optimize(scope);
+                MemoryOptimizerEngine.Optimize(
+                    scope,
+                    cancellation.Token,
+                    step => Dispatcher.Invoke(() => AppendLog($"正在{step}...")));
+
+                cancellation.Token.ThrowIfCancellationRequested();
                 return MemoryStatus.Query();
-            });
+            }, cancellation.Token);
 
             var diff = Math.Max(0, after.AvailablePhysicalBytes - before.AvailablePhysicalBytes);
             AppendLog($"{label}完成。当前可用内存：{ByteSize.Format(after.AvailablePhysicalBytes)}，释放约 {ByteSize.Format(diff)}。");
             StateText.Text = $"{label}完成，释放约 {ByteSize.Format(diff)}。";
+        }
+        catch (OperationCanceledException)
+        {
+            AppendLog($"{label}已取消。");
+            StateText.Text = "已取消。";
         }
         catch (Exception ex)
         {
@@ -102,6 +144,7 @@ public partial class MainWindow : Window
         }
         finally
         {
+            _operationCancellation = null;
             SetBusy(false);
             RefreshStatus();
         }
@@ -131,6 +174,8 @@ public partial class MainWindow : Window
         RecommendedButton.IsEnabled = !value;
         FullButton.IsEnabled = !value;
         TrimJavaButton.IsEnabled = !value;
+        CancelButton.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        CancelButton.IsEnabled = value;
 
         if (!string.IsNullOrWhiteSpace(stateText))
             StateText.Text = stateText;
