@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows10.0.17763.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>MemoryOptimizer</AssemblyName>
+    <RootNamespace>MemoryOptimizer</RootNamespace>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>V1.0.0</InformationalVersion>
+    <Authors>aidendenden</Authors>
+    <Company>aidendenden</Company>
+    <Description>Windows memory optimization utility</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\AppIcon.ico" />
+    <None Include="Assets\AppIcon.png" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+</Project>
