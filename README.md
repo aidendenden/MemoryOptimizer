@@ -1,11 +1,13 @@
 # Memory Optimizer v1.0.1
 
+![Memory Optimizer](./Assets/AppIcon.png)
+
 作者：aidendenden  
 协议：MIT
 
-Memory Optimizer 是一个面向 Windows 的桌面内存优化工具。它提供当前物理内存状态、轻度优化、深度优化、优化前后图表、系统托盘、历史日志和中英文 UI 切换。
+Memory Optimizer 是一个面向 Windows 的桌面内存优化工具。它提供当前物理内存状态、轻度优化、深度优化、优化前后图表、系统托盘、历史日志和中英文 UI。
 
-Memory Optimizer is a Windows desktop utility for viewing physical memory status and running controlled system-level memory optimization. It includes light/deep optimization modes, before/after charts, tray support, history logging, and Chinese/English UI switching.
+Memory Optimizer is a Windows desktop utility for viewing physical memory status and running controlled system-level memory optimization. It includes light/deep optimization modes, before/after charts, system tray support, history logs, and bilingual UI.
 
 ## 功能
 
@@ -33,7 +35,7 @@ Memory Optimizer is a Windows desktop utility for viewing physical memory status
 
 ## 原理
 
-这个工具不会“创造”内存，也不会修复应用自身的内存泄漏。它主要使用：
+这个工具不会"创造"内存，也不会修复应用自身的内存泄漏。它主要使用：
 
 - `GlobalMemoryStatusEx` 读取当前物理内存状态。
 - `NtSetSystemInformation` 触发 Windows 系统内存列表相关操作。
