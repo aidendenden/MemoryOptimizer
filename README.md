@@ -1,6 +1,8 @@
 # Memory Optimizer v1.0.1
 
-<img src="./Assets/AppIcon.png" width="128" alt="Memory Optimizer">
+<div align="center">
+  <img src="./Assets/AppIcon.png" width="200" alt="Memory Optimizer">
+</div>
 
 作者：aidendenden  
 协议：MIT
