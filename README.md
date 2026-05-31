@@ -1,4 +1,4 @@
-# Memory Optimizer v1.0.2
+# 内存清理大师 Memory Optimizer v1.0.2
 
 <div align="center">
   <img src="./Assets/AppIcon.png" width="200" alt="Memory Optimizer">
