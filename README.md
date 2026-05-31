@@ -43,7 +43,7 @@ Memory Optimizer is a Windows desktop utility for viewing physical memory status
 
 ## Usage
 
-下载 Release 中的 `MemoryOptimizer-win-x64.zip`，解压后运行：
+下载 Release 中的 `MemoryOptimizer-win-x64.zip`，解压后运行。发布包为框架依赖单文件，需要系统已安装 .NET 7 Desktop Runtime：
 
 ```text
 MemoryOptimizer.exe
@@ -61,14 +61,12 @@ MemoryOptimizer.exe optimize --dry-run
 ## Build
 
 ```powershell
-cd E:\fork\Arkanoid\MemoryOptimizer
-dotnet publish -c Release -r win-x64 --self-contained true `
+cd E:\fork\MemoryOptimizer
+dotnet publish -c Release -r win-x64 --self-contained false `
   -p:PublishSingleFile=true `
-  -p:IncludeNativeLibrariesForSelfExtract=true `
-  -p:EnableCompressionInSingleFile=true `
   -p:DebugType=None `
   -p:DebugSymbols=false `
-  -o E:\fork\Arkanoid\dist\MemoryOptimizer-Standalone
+  -o E:\fork\MemoryOptimizer\dist\MemoryOptimizer-Standalone
 ```
 
 ## Release Notes

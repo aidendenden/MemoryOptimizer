@@ -74,6 +74,13 @@ internal static partial class NativeMethods
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool AttachConsole(int dwProcessId);
 
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetCurrentProcess();
+
+    [DllImport("psapi.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EmptyWorkingSet(IntPtr hProcess);
+
     [DllImport("ntdll.dll")]
     private static extern uint RtlAdjustPrivilege(
         SePrivilege privilege,
@@ -104,6 +111,8 @@ internal static partial class NativeMethods
     }
 
     public static void AttachParentConsole() => AttachConsole(AttachParentProcess);
+
+    public static bool EmptyCurrentProcessWorkingSet() => EmptyWorkingSet(GetCurrentProcess());
 
     public static bool SetPrivilege(SePrivilege privilege, bool enabled)
     {

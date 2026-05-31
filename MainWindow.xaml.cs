@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     private readonly MemoryOptimizationScope? _startupScope;
     private readonly AppSettings _settings = AppSettings.Load();
     private readonly DispatcherTimer _refreshTimer = new();
+    private readonly DispatcherTimer _memoryTrimTimer = new(DispatcherPriority.ApplicationIdle);
     private readonly bool _isAdministrator = WindowsSecurity.IsAdministrator();
     private readonly List<MemoryChartPoint> _chartPoints = new(capacity: 32);
     private CancellationTokenSource? _operationCancellation;
@@ -29,8 +30,13 @@ public partial class MainWindow : Window
 
         _lastChartSummary = T("NoChartHistory");
         ApplySettings();
-        ConfigureTrayIcon();
         _refreshTimer.Tick += (_, _) => RefreshStatus();
+        _memoryTrimTimer.Interval = TimeSpan.FromMilliseconds(1500);
+        _memoryTrimTimer.Tick += (_, _) =>
+        {
+            _memoryTrimTimer.Stop();
+            ProcessMemoryTrimmer.TrimWorkingSet();
+        };
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -67,6 +73,8 @@ public partial class MainWindow : Window
 
     private void Window_Closed(object sender, EventArgs e)
     {
+        _refreshTimer.Stop();
+        _memoryTrimTimer.Stop();
         _trayIcon?.Dispose();
         _trayIcon = null;
     }
@@ -75,8 +83,10 @@ public partial class MainWindow : Window
     {
         if (WindowState != WindowState.Minimized) return;
 
+        ConfigureTrayIcon();
         Hide();
         _trayIcon?.ShowBalloonTip(1500, "Memory Optimizer", T("TrayMinimized"), WinForms.ToolTipIcon.Info);
+        RequestMemoryTrim();
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e)
@@ -91,7 +101,8 @@ public partial class MainWindow : Window
         _settings.CopyFrom(settingsWindow.Settings);
         _settings.Save();
         ApplySettings();
-        ConfigureTrayIcon();
+        if (_trayIcon is not null)
+            ConfigureTrayIcon();
         RefreshStatus();
         DrawMemoryChart();
         AppendLog(T("SettingsSaved"));
@@ -102,7 +113,8 @@ public partial class MainWindow : Window
         _settings.Language = _settings.Language == UiLanguage.Chinese ? UiLanguage.English : UiLanguage.Chinese;
         _settings.Save();
         ApplySettings();
-        ConfigureTrayIcon();
+        if (_trayIcon is not null)
+            ConfigureTrayIcon();
         RefreshStatus();
         DrawMemoryChart();
     }
@@ -234,6 +246,9 @@ public partial class MainWindow : Window
 
         if (_settings.AutoRefresh)
             AddChartPoint(status, T("RefreshLabel"));
+
+        if (!_isBusy)
+            RequestMemoryTrim();
     }
 
     private void SetBusy(bool value, string? stateText = null)
@@ -266,6 +281,14 @@ public partial class MainWindow : Window
             _refreshTimer.Start();
         else
             _refreshTimer.Stop();
+    }
+
+    private void RequestMemoryTrim()
+    {
+        if (_isBusy) return;
+
+        _memoryTrimTimer.Stop();
+        _memoryTrimTimer.Start();
     }
 
     private void ApplyLanguage()
