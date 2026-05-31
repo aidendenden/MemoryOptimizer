@@ -11,10 +11,10 @@
     <AssemblyName>MemoryOptimizer</AssemblyName>
     <RootNamespace>MemoryOptimizer</RootNamespace>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
-    <InformationalVersion>v1.0.1</InformationalVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <InformationalVersion>v1.0.2</InformationalVersion>
     <Authors>aidendenden</Authors>
     <Company>aidendenden</Company>
     <Description>Windows memory optimization utility</Description>

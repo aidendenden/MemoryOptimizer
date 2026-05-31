@@ -1,4 +1,4 @@
-# Memory Optimizer v1.0.1
+# Memory Optimizer v1.0.2
 
 <div align="center">
   <img src="./Assets/AppIcon.png" width="200" alt="Memory Optimizer">
@@ -21,7 +21,7 @@ Memory Optimizer is a Windows desktop utility for viewing physical memory status
 - 设置窗口：自动刷新、自动请求管理员权限。
 - 系统托盘：最小化到托盘，可恢复窗口或退出。
 - 历史日志：写入 `%APPDATA%\MemoryOptimizer\optimization-history.csv`。
-- 版本与授权信息：UI 底部显示作者、MIT 协议和 v1.0.1。
+- 版本与授权信息：UI 底部显示作者、MIT 协议和 v1.0.2。
 
 ## Features
 
@@ -33,7 +33,7 @@ Memory Optimizer is a Windows desktop utility for viewing physical memory status
 - Settings for auto refresh and automatic elevation.
 - System tray support.
 - CSV history log at `%APPDATA%\MemoryOptimizer\optimization-history.csv`.
-- Author, MIT license, and v1.0.1 displayed in the UI.
+- Author, MIT license, and v1.0.2 displayed in the UI.
 
 ## 原理
 
@@ -74,6 +74,12 @@ dotnet publish -c Release -r win-x64 --self-contained false `
 ```
 
 ## Release Notes
+
+### v1.0.2
+
+- Reduced steady-state working set below 100 MB by trimming the app process after idle refreshes.
+- Deferred system tray initialization until the window is minimized.
+- Switched the Windows release package to framework-dependent single-file publishing to avoid bundling the full .NET desktop runtime.
 
 ### v1.0.1
 
